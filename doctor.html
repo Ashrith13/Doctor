@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Page Title</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.jsdelivr.net/gh/neocotic/qrious/dist/qrious.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/neocotic/qrious/dist/qrious.min.js"></script>
+
+
+    <style>
+        body {
+            font-family: "Lato", sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            background-image: url('bcg.jpg.jpg'); /* Replace with the path to your background image */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .sidebar {
+            height: 100vh;
+            width: 200px; /* Adjust the width of the sidebar */
+            background-color: #111;
+            overflow-x: hidden;
+            padding-top: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .sidebar a {
+            padding: 20px; /* Adjust the padding for each sidebar item */
+            text-decoration: none;
+            font-size: 20px;
+            color: #818181;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .sidebar a i {
+            margin-bottom: 12px; /* Increase the space between the icon and the text */
+        }
+
+        .sidebar a:hover {
+            color: #f1f1f1;
+        }
+
+        .main {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%; /* Set the width to 100% */
+            
+        }
+
+        @media screen and (max-height: 450px) {
+            .sidebar {
+                padding-top: 15px;
+            }
+
+            .sidebar a {
+                font-size: 18px;
+            }
+        }
+
+        .medicine-list {
+            margin-top: 20px;
+            width: 100%; /* Set the width of the medicine list to 100% */
+            display: flex;
+            flex-direction: column; /* Display items in a single column */
+            align-items: center;
+        }
+
+        .item {
+            border: 1px solid #080546;
+            padding: 10px;
+            margin: 10px;
+            width: 200px;
+            text-align: center;
+            background-color: rgb(251, 223, 228);
+            position: relative;
+        }
+
+        .quantity {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        #generateQRButton {
+            margin-top: 20px;
+            background-color: navy;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #cart {
+            display: none;
+            position: fixed;
+            top: 50px;
+            right: 20px;
+            padding: 10px;
+            background-color: white;
+            border: 1px solid #ccc;
+            z-index: 1;
+            width: 300px;
+        }
+
+        .cartItem {
+            margin-bottom: 10px;
+        }
+
+        #oldPrescriptionContainer {
+            display: none;
+            margin-top: 20px;
+        }
+
+        #phoneInput {
+            margin-bottom: 10px;
+        }
+
+        #checkPrescriptionButton {
+            background-color: blue;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #oldPrescriptionList {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+
+
+        <a href="javascript:void(0);" onclick="showHomeScreen()">
+            <i class="fa fa-fw fa-home" aria-hidden="true"></i> Home
+        </a>
+        <a href="javascript:void(0);" onclick="showMedicineList()">
+            <i class="fa fa-fw fa-address-book" aria-hidden="true"></i> New Prescription
+        </a>
+        <a href="javascript:void(0);" onclick="showPatientDetails()">
+            <i class="fa fa-fw fa-user"></i> Patient's Details
+        </a>
+        <a href="javascript:void(0);" onclick="showContact()">
+            <i class="fa fa-fw fa-envelope"></i> Contact
+        </a>
+        
+        <a href="#oldPrescriptions"><i class="fa fa-fw fa-address-book-o" aria-hidden="true"></i> Old Prescriptions</a>
+    
+        
+    </div>
+
+    <div class="main" id="mainContent">
+        <!-- Empty Page Initially -->
+    </div>
+
+    <div id="cart">
+        <h2>Your Cart</h2>
+        <div id="cartItems"></div>
+    </div>
+
+    <div id="oldPrescriptionContainer">
+        <input type="text" id="phoneInput" placeholder="Enter Patient's Phone Number">
+        <button id="checkPrescriptionButton" onclick="getOldPrescriptions()">Check Prescription</button>
+        <div id="oldPrescriptionList"></div>
+    </div>
+
+    <script>
+        let cart = {};
+
+        function showHomeScreen() {
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = ''; // Clear the content
+            const cartDiv = document.getElementById('cart');
+            cartDiv.style.display = 'none';
+    }
+
+    
+        function showMedicineList() {
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = `
+                <h1>New Prescription Section</h1>
+                <div class="medicine-list">
+                    <div class="item" id="dolo">
+                        <span>Dolo</span>
+                        <div class="quantity">
+                            <button onclick="decrement('dolo')">-</button>
+                            <span id="doloQuantity">0</span>
+                            <button onclick="increment('dolo')">+</button>
+                        </div>
+                    </div>
+
+                    <div class="item" id="Sebelium">
+                        <span>Sebelium</span>
+                        <div class="quantity">
+                            <button onclick="decrement('Sebelium')">-</button>
+                            <span id="SebeliumQuantity">0</span>
+                            <button onclick="increment('Sebelium')">+</button>
+                        </div>
+                    </div>
+
+                    <div class="item" id="Disprin">
+                        <span>Disprin</span>
+                        <div class="quantity">
+                            <button onclick="decrement('Disprin')">-</button>
+                            <span id="DisprinQuantity">0</span>
+                            <button onclick="increment('Disprin')">+</button>
+                        </div>
+                    </div>
+
+                    <div class="item" id="Citrizen">
+                        <span>Citrizen</span>
+                        <div class="quantity">
+                            <button onclick="decrement('Citrizen')">-</button>
+                            <span id="CitrizenQuantity">0</span>
+                            <button onclick="increment('Citrizen')">+</button>
+                        </div>
+                    </div>
+
+                    <div class="item" id="Aspirin">
+                        <span>Aspirin</span>
+                        <div class="quantity">
+                            <button onclick="decrement('Aspirin')">-</button>
+                            <span id="AspirinQuantity">0</span>
+                            <button onclick="increment('Aspirin')">+</button>
+                        </div>
+                    </div>
+
+                    <div class="item" id="Rantac">
+                        <span>Rantac</span>
+                        <div class="quantity">
+                            <button onclick="decrement('Rantac')">-</button>
+                            <span id="RantacQuantity">0</span>
+                            <button onclick="increment('Rantac')">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Add more medicine items as needed -->
+                </div>
+
+                <button id="generateQRButton" onclick="generateQRCode()">Generate QR Code</button>
+            `;
+            const cartDiv = document.getElementById('cart');
+            cartDiv.style.display = 'block';
+        }
+
+        function increment(itemId) {
+            if (!cart[itemId]) {
+                cart[itemId] = 0;
+            }
+            cart[itemId]++;
+            updateQuantity(itemId);
+            updateCart();
+        }
+
+        function decrement(itemId) {
+            if (cart[itemId] && cart[itemId] > 0) {
+                cart[itemId]--;
+                updateQuantity(itemId);
+                updateCart();
+            }
+        }
+
+        function updateQuantity(itemId) {
+            const quantityElement = document.getElementById(`${itemId}Quantity`);
+            if (quantityElement) {
+                quantityElement.textContent = cart[itemId];
+            }
+        }
+
+        function updateCart() {
+            const cartContainer = document.getElementById('cartItems');
+            cartContainer.innerHTML = '';
+
+            Object.keys(cart).forEach(itemId => {
+                const quantity = cart[itemId];
+                if (quantity > 0) {
+                    const cartItem = document.createElement('div');
+                    cartItem.classList.add('cartItem');
+                    cartItem.textContent = `${itemId} x${quantity}`;
+                    cartContainer.appendChild(cartItem);
+                }
+            });
+        }
+
+        function showCart() {
+            const cartDiv = document.getElementById('cart');
+            cartDiv.style.display = 'block';
+        }
+
+        function generateQRCode() {
+            // Add your QR code generation logic here
+            alert('QR Code generated!');
+        }
+
+       
+        function showPatientDetails() {
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = `
+                <h1>Patient's Details</h1>
+                <div id="phoneInputContainer">
+                    <label for="phoneInput">Enter Patient's Phone Number:</label>
+                    <input type="text" id="phoneInput" placeholder="e.g., 123-456-7890">
+                    <button onclick="checkPatientDetails()">Submit</button>
+                </div>
+            `;
+            const cartDiv = document.getElementById('cart');
+            cartDiv.style.display = 'none';
+        }
+
+        function checkPatientDetails() {
+            const phoneInput = document.getElementById('phoneInput').value;
+            if (phoneInput.trim() !== "") {
+                // Perform actions with the entered phone number
+                alert('Checking details for phone number: ${phoneInput}');
+            } else {
+                alert("Please enter a valid phone number.");
+            }
+        }
+
+        function showContact() {
+        const mainContent = document.getElementById('mainContent');
+        mainContent.innerHTML = `
+            <h1>Contact</h1>
+            <p>Contact our service for assistance. Our contact service is available to help you.</p>
+            <h2>Contact Service Numbers:</h2>
+            <ul>
+                <li>Customer Service: 123-456-7890</li>
+                <li>Technical Support: 987-654-3210</li>
+            </ul>
+            <h2>Doctors' Contact Numbers:</h2>
+            <ul>
+                <li>Dr. Angelena(Gynaecologist): 555-1234</li>
+                <li>Dr. Sathwika(Neurologist): 555-4578</li>
+                <li>Dr. Reetu(Optomologist): 555-5908</li>
+                <li>Dr. Sriya(Cardiologist): 555-1457</li>
+                <li>Dr. Asha(Orthopedic): 555-2378</li>
+                <li>Dr. Sreshta(Dermotologist): 555-6734</li>
+            </ul>
+        `;
+        const cartDiv = document.getElementById('cart');
+        cartDiv.style.display = 'none';
+    }
+
+    </script>
+
+</body>
+</html>
